@@ -1,9 +1,12 @@
 #include<iostream>
 
-float Return(double w, double b, double x);
+using namespace std;
+
+double ForwardPass(double w, double b, double x){
+    return w * x + b;
+}
 
 int main(){
-    using std::cin, std::cout;
 
     // Training data
     float inputs[] = {1.0f, 2.0f, 3.0f};
@@ -14,7 +17,7 @@ int main(){
     double b = 0.01;
 
     // Consts
-    const float learning_rate = .1f;
+    const float learning_rate = 1;
     const short int epochs = 100;
 
     // Training loop
@@ -23,14 +26,23 @@ int main(){
         double d_w = 0;
         double d_b = 0;
 
-        for(int i = 0; i < sizeof(inputs); i++){
+        for(int j = 0; j < sizeof(inputs); j++){
+            float x = inputs[j];
+            float y = outputs[j];
 
+            double y_pred = ForwardPass(w, x, b);
+
+            double error = y_pred - y;
+
+            d_w += (2 / sizeof(inputs)) * error * x;
+            d_b += (2 / sizeof(inputs)) * error;
         }
+
+        w = w - learning_rate * d_w;
+        b = b - learning_rate * d_b;
+
+        cout << "w: " << w << ";  b: " << b << ".\n";
     }
 
     return 0;
-}
-
-float Return(double w, double b, double x){
-    return w * x + b;
 }
