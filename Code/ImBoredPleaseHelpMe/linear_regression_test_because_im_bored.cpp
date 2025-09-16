@@ -2,15 +2,17 @@
 
 using namespace std;
 
-double ForwardPass(double w, double b, double x){
+double ForwardPass(double w, double b, double x)
+{
     return w * x + b;
 }
 
-int main(){
+int main()
+{
 
     // Training data
-    float inputs[] = {1.0f, 2.0f, 3.0f};
-    float outputs[] = {3.0f, 5.0f, 7.0f};
+    double inputs[] = {11.0, 37.0, 56.0};
+    double outputs[] = {983, 3219, 4853};
     short int n = sizeof(inputs) / sizeof(inputs[0]);
 
     // Variables
@@ -18,18 +20,20 @@ int main(){
     double b = 0.01;
 
     // Consts
-    const float learning_rate = .1;
-    const short int epochs = 1000;
+    const double learning_rate = .1;
+    const long int epochs = 10000;
 
     // Training loop
-    for(int i = 0; i < epochs; i++){
+    for(long int i = 0; i < epochs; i++)
+    {
         // Gradients
         double d_w = 0;
         double d_b = 0;
 
-        for(int j = 0; j < n; j++){
-            float x = inputs[j];
-            float y = outputs[j];
+        for(int j = 0; j < n; j++)
+        {
+            double x = inputs[j];
+            double y = outputs[j];
 
             double y_pred = ForwardPass(w, b, x);
 

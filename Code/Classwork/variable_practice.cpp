@@ -2,7 +2,8 @@
 
 using namespace std;
 
-int main(){
+int main()
+{
 
     // Variable decleration
     string f_name, l_name;
