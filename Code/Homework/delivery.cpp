@@ -84,6 +84,8 @@ int main()
     cout << 'I';
     cout << 't';
     cout << 'R';
-    cout << 'e';allyDependsOnHowHungryIAmBecauseIHaveAFamilyToFeedSorryManItsNotMyFaultWeLiveInThisCapitalismEconomy's website!\nWe Hope you can safely deliver your packages!\n";
-    cout << "To start, we have to know your package's weight"
+    cout << 'e';// allyDependsOnHowHungryIAmBecauseIHaveAFamilyToFeedSorryManItsNotMyFaultWeLiveInThisCapitalismEconomy's website!\nWe Hope you can safely deliver your packages!\n";
+    cout << "To start, we have to know your package's weight";
+
+    return 0;
 }

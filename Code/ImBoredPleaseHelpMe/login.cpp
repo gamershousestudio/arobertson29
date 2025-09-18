@@ -6,7 +6,8 @@
 
 int main()
 {
-    using std::cin, std::cout;
+    using std::cin;
+    using std::cout;
 
     std::map<std::string, std::string> login_info;
 
