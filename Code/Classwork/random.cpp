@@ -24,5 +24,9 @@ int main()
     int chance = rand() % 4; // 25 percent chance
     chance = rand() / 5; // 20 percent chance...
 
+    // num % range + start
+    // srand(time(NULL))
+    
+
     return 0;
 }
