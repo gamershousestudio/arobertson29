@@ -8,3 +8,5 @@ int main()
 
     cout << var << endl;
 }
+
+// A string is just a list of characters, and characters are just an ascii value
