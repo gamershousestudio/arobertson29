@@ -20,7 +20,7 @@ more advanced projects would make the code writing much harder because I would h
 with the logic for my code.  I treated the psuedocode more as a basic outline then an english
 representation for my code.  While writing my code, I learned more about the psuedocode process
 and why it is so important for more advanced programs like AIs.  It is also useful to map out the
-logic, though I'm not sure I would use psuedocode exactly for that
+logic, though I'm not sure I would use psuedocode exactly for that.
 
 */
 
