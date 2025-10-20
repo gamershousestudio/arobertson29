@@ -32,12 +32,16 @@ string SetBinary(string input[])
 
     int size = sizeof(input) / sizeof(input[0]);
 
+    cout << size;
+
     for (int i = 0; i < size; ++i) 
     {
         int ascii_val = stoi(input[i], nullptr, 2);                                      
         char c = static_cast<char>(ascii_val);
         output += c;
     }
+
+    cout << "'"<< output << "'\n\n\n";
 
     return output;
 }
@@ -69,6 +73,8 @@ int main()
     string binary[] = {"1001000", "1100101", "1101100", "1101100", "1101111", 
                        "100000", "1010111", "1101111", "1110010", "1101100", 
                        "1100100", "100001"};
+
+    cout << binary;
 
     cout << SetBinary(binary);
 
