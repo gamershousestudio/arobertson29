@@ -1,0 +1,201 @@
+// Libraries
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+// Imports
+using namespace std;
+
+// Function prototypes
+void Addition(double & a, double & b, double c, double d);
+void Subtraction(double & a, double & b, double c, double d);
+void Multiplcation(double & a, double & b, double c, double d);
+void Division(double & a, double & b, double c, double d);
+
+double Length(double a, double b);
+
+void Input(double & a, double & b);
+void Output(double a, double b);
+
+void Introduce();
+
+// __init__
+int main()
+{
+    // Variables
+    char choice;
+
+    double a = 0; // keeps track of the current real value
+    double b = 0; // keeps track of the current imaginary value
+    double c = 0; // the real value to +, -, *, or /
+    double d = 0; // the imaginary value to +, -, *, or /
+
+    // Welcome text
+    cout << "\nWelcome to the Complex Number Calculator!" << "\n";
+
+    Introduce();
+
+    // Main loop
+    while(choice != 'q')
+    {
+        // User input
+        Output(a, b);
+        cout << "Enter what you want to do: ";
+        cin >> choice;
+
+        // Decison tree(based on user input)
+        // Calls necessary functions 
+        switch(choice)
+        {
+            case '+':
+                Input(c, d);
+                Addition(a, b, c, d);
+
+                break;
+
+            case '-':
+                Input(c, d);
+                Subtraction(a, b, c, d);
+
+                break;
+
+            case '*':
+                Input(c, d);
+                Multiplcation(a, b, c, d);
+
+                break;
+
+            case '/':
+                Input(c, d);
+                Division(a, b, c, d);
+                break;
+            
+            case 'l':
+                cout << "The length of your number is " << Length(a, b) << "\n\n";
+                break;
+            
+            case 'i':
+                Input(a, b);
+
+                break;
+
+            case 'h':
+                Introduce();
+
+                break;
+            
+            case 'q':
+                break; // Just here to prevent running the default when user quits
+
+            default:
+                cout << "Not a valid choice!" << endl;
+                break;
+        }
+    }
+
+    // Exit program
+    cout << "\nThank you for using the half-broken calculator that I made!\n\n";
+
+    return 0;
+}
+
+
+void Addition(double & a, double & b, double c, double d)
+{
+    // Adds two complex numbers
+    // Formula: (a + bi) + (c + di)
+    // Simplified: (a + c) + (b + d)i
+    a += c;
+    b += d;
+}
+
+void Subtraction(double & a, double & b, double c, double d)
+{
+    // Subtracts two complex numbers
+    // Formula: (a + bi) - (c + di)
+    // Simplified: (a - c) + (b - d)i
+    a -= c;
+    b -= d;
+}
+
+void Multiplcation(double & a, double & b, double c, double d)
+{
+    // Multiplies two complex numbers
+    // Formula: (a + bi)(c + di)
+    // Simplified: (ac - bd) + (bc + ad)
+
+    double a_temp = a;
+
+    a = a * c - b * d;
+    b = b * c + a_temp * d;
+}
+
+void Division(double & a, double & b, double c, double d)
+{
+    // Divides two complex numbers
+    // Formula: (a + bi) / (c + di)
+    // Simplified: ((ac + bd) / (c^2 + d^2)) + ((bc - ad) / (c^2 + d^2))
+
+    double a_temp = a;
+
+    a = (a * c + b * d) / (c * c + d * d);
+    b = (b * c - a_temp * d) / (c * c + d * d);
+}
+
+double Length(double a, double b)
+{
+    // Gets the absolute value of the complex number
+    // Formula: r = |z| = sqrt(x^2 + y^2) when x = real portion and y = complex portion(or vise versa)
+    return sqrt((a * a) + (b * b));
+}
+
+void Input(double & a, double & b)
+{
+    // Gets user input for real & imaginary portion of numbers
+    cout << "\nPlease enter the real portion: ";
+    cin >> a;
+
+    cout << "Please enter the imaginary portion: ";
+    cin >> b;
+
+    cout << "\n";
+}
+
+void Output(double a, double b)
+{
+    // Outputs current complex number
+    cout << "Your current number is: \n";
+    
+    // Checks to use addition or subtraction(or neither)
+    // Based on the b value, aka the one containing i
+    if(b > 0)
+    {
+        cout << fixed << setprecision(2) << a << " + " << b << "i\n\n";
+    }
+    else if(b < 0)
+    {
+        cout << fixed << setprecision(2) << a << " - " << abs(b) << "i\n\n";
+    }
+    else
+    {
+        cout << fixed << setprecision(2) << a << " + 0i\n\n";
+    }
+}
+
+void Introduce()
+{
+    // Introduction text
+    // Gives user command options
+    cout << "\nHere are your options: \n";
+
+    cout << "   + (addition)\n";
+    cout << "   - (subtraction)\n";
+    cout << "   * (multiplication)\n";
+    cout << "   / (division)\n";
+    
+    cout << "   l (length)\n";
+    cout << "   i (new input)\n";
+    cout << "   q (quit)\n\n";
+
+    cout << "Press 'h' to see these options again\n\n";
+}
