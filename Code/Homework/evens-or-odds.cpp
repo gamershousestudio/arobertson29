@@ -18,7 +18,19 @@ int main()
     {
         nums[i] = rand() % 101;
         cout << nums[i] << "\n";
+
+        if((nums[i] % 2) == 0)
+        {
+            evens++;
+        }
+        else
+        {
+            odds++;
+        }
     }
+
+    cout << "\nThere are " << evens << " even numbers!\n";
+    cout << "There are " << odds << " odd numbers!\n\n";
 
     return 0;
 }
