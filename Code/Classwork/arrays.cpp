@@ -12,6 +12,9 @@ Ways of initializing
  - {1, 153, 97, 13468, 23} -- hard coding
  - 
 
+Passing into functions
+ - void example(int score, int a[]); // Do not need to declare size
+
 */
 
 #include<iostream>
