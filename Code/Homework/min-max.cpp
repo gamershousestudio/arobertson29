@@ -2,17 +2,20 @@
 
 using namespace std;
 
+int Max(int a[]);
+int Min(int a[]);
+
+const int size = 50; // VSCode doesnt like to recognize these as global :/
+const int range = 10000;
+
 int main() 
 {
     srand(time(NULL));
     
-    int size = 100;
-    int range = 10000;
+    int numbers[size];
     
-    int numbers[10000];
-    
-    int max;
-    int min;
+    int max = 0;
+    int min = 0;
     
     for(int i = 0; i < size; i++)
     {
@@ -29,8 +32,38 @@ int main()
         }
     }
     
-    cout << "\n\nThe maximum number is " << numbers[max] << ".\n";
-    cout << "The minimum number is " << numbers[min] << ".\n";
+    cout << "\n\nThe maximum number is " << numbers[Max(numbers)] << ".\n";
+    cout << "The minimum number is " << numbers[Min(numbers)] << ".\n";
     
     return 0;
+}
+
+int Max(int a[])
+{
+    int max = 0;
+
+    for(int i = 0; i < size; i++)
+    {
+        if(a[i] > a[max])
+        {
+            max = i;
+        }
+    }
+
+    return max;
+}
+
+int Min(int a[])
+{
+    int min = 0;
+
+    for(int i = 0; i < size; i++)
+    {
+        if(a[i] < a[min])
+        {
+            min = i;
+        }
+    }
+
+    return min;
 }
