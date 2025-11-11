@@ -8,7 +8,7 @@ struct codingStats
     double linesPerMinute;
     int layoffAmount;
     bool hasDegree;
-    bool vibeCoder;
+    bool isWeird;
 };
 
 int main()
@@ -36,11 +36,16 @@ int main()
     }
     else
     {
-        cout << "Haha imagine\n\n";
+        cout << "\nHaha imagine\n\n";
     }
 
-    cout << "Do you have a comp sci degree?\n";
-    cin >> stats.hasDegree;
+    char yes_or_no;
+
+    cout << "Do you have a comp sci degree? (y/n)\n";
+    cin >> yes_or_no;
+
+    if(yes_or_no == 'y') stats.hasDegree = 1;
+    else stats.hasDegree = 0;
 
     if(stats.hasDegree)
     {
@@ -51,12 +56,15 @@ int main()
         cout << "\nYeah so... your not gonna get a job...\n\n";
     }
 
-    cout << "Are you a vibe coder?";
-    cin >> stats.vibeCoder;
+    cout << "Are you a v*** coder? (y/n)"; // Had to censor vibe to keep pg
+    cin >> yes_or_no;
 
-    if(stats.vibeCoder)
+    if(yes_or_no == 'y') stats.isWeird = 1;
+    else stats.isWeird = 0;
+
+    if(stats.isWeird)
     {
-        // string cmd = "sudo shutdown -h now";  SENSORED(sadly)
+        // string cmd = "sudo shutdown -h now";  CENSORED(sadly)
         // system(cmd.c_str());
 
         cout << "\nDIE HOW DARE YOU DO THIS WHY\n\n";
