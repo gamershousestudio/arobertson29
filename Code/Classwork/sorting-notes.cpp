@@ -42,7 +42,6 @@ int main()
 
     for(int i = 0; i < length; i++)
     {
-        array[i] = rand() % range;
         cout << " [ " << array[i] << " ] ";
     }
 
