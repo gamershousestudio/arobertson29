@@ -15,12 +15,14 @@ void Insertion(int a[]);
 
 void Swap(int & a, int & b);
 
-int Round(int c0, int c1, int c2, int c3, int c4);
+int Round(int & c0, int & c1, int & c2, int & c3, int & c4, int & c5);
 
 // Constants
 const string sides[] = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"}; // Unicode for each side
-const int rounds;
-const int limit;
+
+const int rounds = 3;
+const int limit = 1;
+const long int cooldown = 1000000000;
 
 // Init function
 int main()
@@ -44,7 +46,9 @@ int main()
     for(int i = 0; i < rounds; i++)
     {
         cout << "Round " << (i + 1) << ": \n\n";
-        score += Round();
+        score += Round(yahtzee, four, three, small, large, chance);
+
+        for(long int i = 0; i < cooldown; i++) continue; // Cooldown
     }
 
     cout << "Your total score is " << score << "\n\n";
@@ -152,7 +156,7 @@ void Swap(int & a, int & b)
     b = c;
 }
 
-int Round()
+int Round(int & c0, int & c1, int & c2, int & c3, int & c4, int & c5)
 {
     // Variables
     int dice[5];
@@ -179,35 +183,55 @@ int Round()
     cout << "\n\nYou got a ";
 
     // Finds what the user got
-    if(Yahtzee(dice))
+    if(Yahtzee(dice) && c0)
     {
         score = 50;
         cout << "YAHTZEE!\n\n";
+
+        c0++;
     }
-    else if(LargeStraight(dice))
+    else if(LargeStraight(dice) && c1)
     {
         score = 40;
         cout << "Large Straight!\n\n";
+
+        c1++;
     }
-    else if(SmallStraight(dice))
+    else if(SmallStraight(dice) && c2)
     {
         score = 30;
         cout << "Small Straight!\n\n";
+
+        c2++;
     }
-    else if(Four(dice))
+    else if(Four(dice) && c3)
     {
         score = Chance(dice);
         cout << "Four of a Kind!\n\n";
+
+        c3++;
     }
-    else if(Three(dice))
+    else if(Three(dice) && c4)
     {
         score = Chance(dice);
         cout << "Three of a Kind!\n\n";
+
+        c4++;
     }
-    else
+    else if(c5)
     {
         score = Chance(dice);
         cout << "Chance!\n\n";
+
+        c5++;
+    }
+    else
+    {
+        cout << "You already got that " << limit;
+        if(limit == 1) cout << " time... sorry...\n\n";
+        else cout << " times... sorry...\n\n";
+        
+        
     }
 
     cout << "Your round score is " << score << "\n\n";
