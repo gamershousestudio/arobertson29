@@ -3,7 +3,8 @@
 PSEUDOCODE:
 
 In main
- - secret is randomly generated
+ - secret is randomly 
+ generated
  - welcome text
  - In while
    - ran until number is guessed
