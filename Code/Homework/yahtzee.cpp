@@ -180,61 +180,58 @@ int Round(int & c0, int & c1, int & c2, int & c3, int & c4, int & c5)
         cout << sides[dice[i]] << " ";
     }
 
-    cout << "\n\nYou got a ";
-
     // Finds what the user got
-    if(Yahtzee(dice) && c0)
+    // Makes sure they did not already get it
+    if(Yahtzee(dice) && c0 < limit)
     {
         score = 50;
-        cout << "YAHTZEE!\n\n";
+        cout << "\n\nYou got a YAHTZEE!\n\n";
 
         c0++;
     }
-    else if(LargeStraight(dice) && c1)
+    else if(LargeStraight(dice) && c1 < limit)
     {
         score = 40;
-        cout << "Large Straight!\n\n";
+        cout << "\n\nYou got a Large Straight!\n\n";
 
         c1++;
     }
-    else if(SmallStraight(dice) && c2)
+    else if(SmallStraight(dice) && c2 < limit)
     {
         score = 30;
-        cout << "Small Straight!\n\n";
+        cout << "\n\nYou got a Small Straight!\n\n";
 
         c2++;
     }
-    else if(Four(dice) && c3)
+    else if(Four(dice) && c3 < limit)
     {
         score = Chance(dice);
-        cout << "Four of a Kind!\n\n";
+        cout << "\n\nYou got a Four of a Kind!\n\n";
 
         c3++;
     }
-    else if(Three(dice) && c4)
+    else if(Three(dice) && c4 < limit)
     {
         score = Chance(dice);
-        cout << "Three of a Kind!\n\n";
+        cout << "\n\nYou got a Three of a Kind!\n\n";
 
         c4++;
     }
-    else if(c5)
+    else if(c5 < limit)
     {
         score = Chance(dice);
-        cout << "Chance!\n\n";
+        cout << "\n\nYou got a Chance!\n\n";
 
         c5++;
     }
     else
     {
-        cout << "You already got that " << limit;
+        cout << "\n\nYou already got that " << limit;
         if(limit == 1) cout << " time... sorry...\n\n";
         else cout << " times... sorry...\n\n";
-        
-        
     }
 
     cout << "Your round score is " << score << "\n\n";
 
-    return 0;
+    return score;
 }
