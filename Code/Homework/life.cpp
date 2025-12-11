@@ -1,3 +1,7 @@
+#include<iostream>
+
+using namespace std;
+
 /* COMMENTING GUIDE
 
 Comment right before line of code is for that region until the next instance
@@ -81,15 +85,16 @@ class MouseInput
         // Gets our original settings and brings them back
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTermios)
     }
+
+    void EnableMouse()
+    {
+
+    }
 }
 
 #pragma endregion
 //-----------------------------------------------------------------------------------------------------------
 #pragma region Initialization
-
-#include<iostream>
-
-using namespace std;
 
 // Global variables
 const int xMax = 10; // x = row
