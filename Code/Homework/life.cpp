@@ -35,7 +35,7 @@ list as it is simple and I had it as previous knowledge.
     Makes lines of code collapsable.  Am using here to help with organization
 
 5) c_lflag
-    Struct within termios containing terminal files
+    Struct within termios containing terminal settings files
 
 6) Idea behind EnableRawMode()
     Puts all bitmaps together; isolating values that need to be negated as equal to 1
@@ -43,7 +43,9 @@ list as it is simple and I had it as previous knowledge.
     For values that don't need to be negated, they stay the same(1 & 1 = 1; 1 & 0 = 0)
     For values that need to be negated, they are no matter original(0 & 1 = 0; 0 & 0 = 0)
 
-7) 
+7) cout.flush()
+    Pretty much, things happen faster
+    Pushes everything waiting to be cout-ed all at once(normally just saved in memory then cout-ed)
 
 */
 
@@ -51,12 +53,22 @@ list as it is simple and I had it as previous knowledge.
 //-----------------------------------------------------------------------------------------------------------
 #pragma region MouseInput
 
+// Info on click event
+struct Input
+{
+    int row;
+    int col;
+}
+
 // Gets user mouse input
 // A lot of this stuff is weird terminal sorcery, but I tried to explain this as best as possible
 
 // Weird header stuff needed for this
 #include<termios.h> // Used for editing terminal settings
 #include<unistd.h> // Interperates mouse events
+
+#include<sstream> // Allows memory to be allocated for a seperate (essentially global) variable to save strings
+#include<string> // Strings exist in this code
 
 termios originalTermios; // Initializes termios
 
@@ -66,31 +78,130 @@ class MouseInput
     void EnableRawMode()
     {
         // Gets termios ready for messing with
-        tcgetattr(STDIN_FILENO, &originalTermios) // Saves current state of our termios instance
+        tcgetattr(STDIN_FILENO, &originalTermios); // Saves current state of our termios instance
 
         termios raw = originalTermios; // Gives us a new termios to mess with
 
         // Edits settings within c_lflag (by disables I just mean disabling signals for it)
-        raw.c_lflag &= ~(ECHO | ICANON | ISIG) // Disables character typing, delayed signals, and kill signals
+        raw.c_lflag &= ~(ECHO | ICANON | ISIG); // Disables character typing, delayed signals, and kill signals
         raw.c_lflag &= ~(IXON | ICRNL); // Disables terminal pausing
         raw.c_lflag &= ~(OPOST); // Disables autoformat
 
         // Updates console settings (sets active instance to our raw)
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw)
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
     }
 
     // Brings console back to original settings
     void DisableRawMode()
     {
         // Gets our original settings and brings them back
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTermios)
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTermios);
     }
 
+    // Sends code mouse input signals
     void EnableMouse()
     {
-
+        cout << "\x1b[?1000h"; // Send click events
+        cout << "\x1b[?1006h"; // Make click events not impossible to read
+        cout.flush();
     }
-}
+
+    // Reverts EnableMouse()
+    void DisableMouse()
+    {
+        cout << "\x1b[?1000l"; // Stops sending click events
+        cout << "\x1b[?1006l"; // Makes click events impossible to read
+        cout.flush(); // I'm impatient; happen now
+    }
+
+    // Saves input
+    void ParseMouseSequence(const string &seq, int & b, int & c, int & r, char & a)
+    {
+        int button, col, row; // Info contained within the sequence
+
+        char action, ignore;
+
+        // Creates memory for seq
+        stringstream ss(seq); // Saves seq to internal memory
+        ss >> ignore >> ignore >> button; // Allocates the saved seq
+        
+        // Grabs col value
+        ss.ignore(1, ';');
+        ss >> col;
+
+        // Grabs row value
+        ss.ignore(1, ';');
+        ss >> row;
+
+        // Sees if it is a press(m) or a release(M)
+        ss >> action;
+
+        // Outputs the signal info
+        cout << "Button: " << button
+             << " Column: " << col
+             << " Row: " << row
+             << " Action: " << action << "\n";
+
+        // Checks if mouse inputs are valid(actually useful for code)
+        if(button != 0) return;
+        if(action != 'm') return;
+
+        // Initializes struct values
+        Input input;
+        
+        input.col = col;
+        input.row = row;
+    }
+
+    // Decodes signals the terminal sends
+    void ReadInput(int & b, int & col, int & r, char & a)
+    {
+        // Will be received as: ESC[< button; column; row M << indicates press event type(capital M means release)
+
+        // Loops through each sent byte in the signal
+        char c; // Used to store the sequence type
+
+        while(read(STDIN_FILENO, &c, 1) > 0) // Loops through each sequence
+        {
+            if(c == '\x1b') // Makes sure this is an ESC mouse signal
+            {
+                char seq[32];
+                int i = 0;
+
+                while(read(STDIN_FILENO, &seq[i], 1) > 0) // Loops through each byte in the signal & updates it's seq[] value
+                {
+                    if(seq[i] == 'M' || seq[i] == 'm') break; // Indicates end of mouse event
+
+                    i++;
+                }
+
+                seq[i + 1] = '\0'; // Indicates end of sequence
+
+                // Saves sequence
+                ParseMouseSequence(seq, b, col, r, a);
+            }
+        }
+    }
+
+    // Functions needed for global access
+    public: 
+        void StartMouseSignaling()
+        {
+            EnableRawMode();
+            EnableMouse();
+        }
+
+        void GetSignals(int & b, int & c, int & r, char & a)
+        {
+            ReadInput(b, c, r, a);
+        }
+
+        void StopMouseSignaling()
+        {
+            DisableMouse();
+            DisableRawMode();
+        }
+};
 
 #pragma endregion
 //-----------------------------------------------------------------------------------------------------------
@@ -113,6 +224,16 @@ int main()
     // Game Variables
     bool game[xMax][yMax];
     bool nextFrame[xMax][yMax];
+
+    // TEMP TEST
+    MouseInput input;
+
+    int b, r, c;
+    char a;
+
+    input.StartMouseSignaling();
+    input.GetSignals(b, r, c, a);
+    input.StopMouseSignaling();
 
     return 0;
 }
@@ -151,10 +272,12 @@ int GetNeighbors(bool a[][yMax], int cords[])
     if(nearby[3] && a[cords[0]][cords[1] + 1]) active++; // Below
 
     // Diagonal
-    if(nearby[0] && nearby[2] && ) active++; // Top left
-    if(nearby[1] && nearby[2] && ) active++; // Top right
-    if(nearby[0] && nearby[3] && ) active++; // Bottom left
-    if(nearby[1] && nearby[3] && ) active++; // Bottom right
+    if(nearby[0] && nearby[2] && a[cords[0] - 1][cords[1] - 1]) active++; // Top left
+    if(nearby[1] && nearby[2] && a[cords[0] + 1][cords[1] - 1]) active++; // Top right
+    if(nearby[0] && nearby[3] && a[cords[0] - 1][cords[1] + 1]) active++; // Bottom left
+    if(nearby[1] && nearby[3] && a[cords[0] + 1][cords[1] + 1]) active++; // Bottom right
+
+    return active;
 }
 
 #pragma endregion
