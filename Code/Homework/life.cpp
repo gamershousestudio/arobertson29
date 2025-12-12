@@ -1,23 +1,6 @@
-#pragma region Initialization
-
 #include<iostream>
 
 using namespace std;
-
-// Global variables
-const int xMax = 10; // x = row
-const int yMax = 10; // y = col
-
-const string sprites[] = {"⬜️", "⬛️"};
-
-// Function prototypes
-int GetNeighbors(bool a[][yMax], int cords[]);
-
-void Output(bool a[][yMax]);
-void OnClick(int x, int y, bool a[][yMax]);
-
-#pragma endregion
-//-----------------------------------------------------------------------------------------------------------
 
 /* COMMENTING GUIDE
 
@@ -75,7 +58,7 @@ struct Input
 {
     int row;
     int col;
-};
+}
 
 // Gets user mouse input
 // A lot of this stuff is weird terminal sorcery, but I tried to explain this as best as possible
@@ -121,8 +104,6 @@ class MouseInput
         cout << "\x1b[?1000h"; // Send click events
         cout << "\x1b[?1006h"; // Make click events not impossible to read
         cout.flush();
-
-        cout << ".";
     }
 
     // Reverts EnableMouse()
@@ -134,7 +115,7 @@ class MouseInput
     }
 
     // Saves input
-    void ParseMouseSequence(const string &seq, bool a[][yMax])
+    void ParseMouseSequence(const string &seq, int & b, int & c, int & r, char & a)
     {
         int button, col, row; // Info contained within the sequence
 
@@ -155,24 +136,25 @@ class MouseInput
         // Sees if it is a press(m) or a release(M)
         ss >> action;
 
+        // Outputs the signal info
+        cout << "Button: " << button
+             << " Column: " << col
+             << " Row: " << row
+             << " Action: " << action << "\n";
+
         // Checks if mouse inputs are valid(actually useful for code)
-        // if(button != 0) return;
-        // if(action != 'm') return;
+        if(button != 0) return;
+        if(action != 'm') return;
 
         // Initializes struct values
         Input input;
         
-        input.col = (col + (col % 2)) / 2; // Makes a multiple of two then divides by two(each emoji is two columns)
-        input.row = (row + (row % 2)) / 2; // Makes a multiple of two then divides by two(each emoji is two rows)
-
-        // Triggers OnClick() event
-        // OnClick(input.row, input.col, a);
-
-        cout << "hi.";
+        input.col = col;
+        input.row = row;
     }
 
     // Decodes signals the terminal sends
-    void ReadInput(bool a[][yMax])
+    void ReadInput(int & b, int & col, int & r, char & a)
     {
         // Will be received as: ESC[< button; column; row M << indicates press event type(capital M means release)
 
@@ -196,7 +178,7 @@ class MouseInput
                 seq[i + 1] = '\0'; // Indicates end of sequence
 
                 // Saves sequence
-                ParseMouseSequence(seq, a);
+                ParseMouseSequence(seq, b, col, r, a);
             }
         }
     }
@@ -205,20 +187,13 @@ class MouseInput
     public: 
         void StartMouseSignaling()
         {
-            cout << ".";
-
             EnableRawMode();
-
-            cout << ".";
-
             EnableMouse();
-
-            cout << ".";
         }
 
-        void GetSignals(bool a[][yMax])
+        void GetSignals(int & b, int & c, int & r, char & a)
         {
-            ReadInput(a);
+            ReadInput(b, c, r, a);
         }
 
         void StopMouseSignaling()
@@ -230,6 +205,19 @@ class MouseInput
 
 #pragma endregion
 //-----------------------------------------------------------------------------------------------------------
+#pragma region Initialization
+
+// Global variables
+const int xMax = 10; // x = row
+const int yMax = 10; // y = col
+
+const string sprites[] = {"⬜️", "⬛️"};
+
+// Function prototypes
+int GetNeighbors(bool a[][yMax], int cords[]);
+
+#pragma endregion
+//-----------------------------------------------------------------------------------------------------------
 
 int main()
 {
@@ -237,35 +225,15 @@ int main()
     bool game[xMax][yMax];
     bool nextFrame[xMax][yMax];
 
-    // Initializes arrays
-    for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
-    {
-        game[x][y] = 0;
-        nextFrame[x][y] = 0;
-    }
-
     // TEMP TEST
-    // Game loop
-    //while(true)
-    //{
-        Output(game);
+    MouseInput input;
 
-        cout << ".";
+    int b, r, c;
+    char a;
 
-        MouseInput input;
-
-        int b, r, c;
-        char a;
-
-        cout << ".";
-
-        input.StartMouseSignaling();
-
-        cout << ".";       
-
-        input.GetSignals(game);
-        input.StopMouseSignaling();
-    //}
+    input.StartMouseSignaling();
+    input.GetSignals(b, r, c, a);
+    input.StopMouseSignaling();
 
     return 0;
 }
@@ -310,30 +278,6 @@ int GetNeighbors(bool a[][yMax], int cords[])
     if(nearby[1] && nearby[3] && a[cords[0] + 1][cords[1] + 1]) active++; // Bottom right
 
     return active;
-}
-
-// Outputs the frame
-void Output(bool a[][yMax])
-{
-    // Clears console
-    cout << "\e[1;1H\e[2J"; 
-    // Loops through all values in the array and outputs it
-    for(int x = 0; x < xMax; x++)
-    {
-        for(int y = 0; y < yMax; y++)
-        {
-            cout << sprites[a[x][y]];
-        }
-
-        cout << "\n";
-    }
-}
-
-// Toggles the value of a given cell
-void OnClick(int x, int y, bool a[][yMax])
-{
-    a[x][y] = !a[x][y];
-    cout << x;
 }
 
 #pragma endregion
