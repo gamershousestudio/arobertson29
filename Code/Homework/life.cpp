@@ -1,14 +1,14 @@
-#pragma region Initialization
+//#pragma region Initialization
 
 #include<iostream>
 
 using namespace std;
 
-// Global variables
-const int xMax = 10; // x = row
-const int yMax = 10; // y = col
+// Global variables (feel free to change x&y max)
+const int xMax = 10; // X = row(so technicially Y)
+const int yMax = 10; // Y = col(so technicially X)
 
-const string sprites[] = {"⬜️", "⬛️"};
+const string sprites[] = {"⬜️", "⬛️", "⏩", "🟥", "🔄"}; // 0 = inactive cell; 1 = active cell; 2 = step; 3 = quit
 
 // Function prototypes
 int GetNeighbors(bool a[][yMax], int cords[]);
@@ -17,7 +17,9 @@ void Output(bool a[][yMax]);
 
 void OnClick(int x, int y, bool a[][yMax]);
 
-#pragma endregion
+void Step(bool a[][yMax]);
+
+//#pragma endregion
 //-----------------------------------------------------------------------------------------------------------
 
 /* COMMENTING GUIDE
@@ -30,7 +32,7 @@ Comment outside of a function summerizes the role of that function
 */
 
 //-----------------------------------------------------------------------------------------------------------
-#pragma region Notes
+//#pragma region Notes
 
 /* REFERENCE GUIDE
 
@@ -49,7 +51,7 @@ list as it is simple and I had it as previous knowledge.
 3) Bitwise ~ operator
     Applies NOT operator to each bit within a variable's allocated memory
 
-4) #pragma region & #pragma endregion
+4) //#pragma region & //#pragma endregion
     Makes lines of code collapsable.  Am using here to help with organization
 
 5) c_lflag
@@ -67,9 +69,9 @@ list as it is simple and I had it as previous knowledge.
 
 */
 
-#pragma endregion
+//#pragma endregion
 //-----------------------------------------------------------------------------------------------------------
-#pragma region MouseInput
+//#pragma region MouseInput
 
 // Info on click event
 struct Input
@@ -133,7 +135,7 @@ class MouseInput
     }
 
     // Saves input
-    void ParseMouseSequence(const string &seq, bool a[][yMax])
+    bool ParseMouseSequence(const string &seq, bool a[][yMax]) // Returns if the while loop should be exited
     {
         int button, col, row; // Info contained within the sequence
 
@@ -154,20 +156,37 @@ class MouseInput
         // Sees if it is a press(m) or a release(M)
         ss >> action;
 
-        
-
         // Checks if mouse inputs are valid(actually useful for code)
-        if(button != 0) return;
-        if(action != 'm') return;
+        if(button != 0) return true;
+        if(action != 'm') return true;
 
         // Initializes struct values
         Input input;
         
         input.col = (col + (col % 2)) / 2 - 1; // Makes a multiple of two then divides by two(each emoji is two columns)
-        input.row = row - 1; 
+        input.row = row - 2; // Must subtract an extra one to account for \n buffering
         
-        // Sends values to OnClick() event
+        // Checks for special rows
+
+        // Exit program
+        if(input.row == 0 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) return false; // Position for exit emoji; room for buffering
+
+        // Runs the next step
+        if(input.row == 2 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) Step(a);
+
+        // Resets game board
+        if(input.row == 4 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
+        {
+            for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++) a[x][y] = 0;
+            Output(a);
+        }
+
+        // Returns if the click is outside of bounds
+        if(input.row > (xMax - 1) || input.col > (yMax - 1)) return true; 
+
+        // Sends values to OnClick() event if all checks are passed
         OnClick(input.row, input.col, a);
+        return true;
     }
 
     // Decodes signals the terminal sends
@@ -177,6 +196,8 @@ class MouseInput
 
         // Loops through each sent byte in the signal
         char c; // Used to store the sequence type
+
+        bool cont; // Checks if the while loop should continue
 
         while(read(STDIN_FILENO, &c, 1) > 0) // Loops through each sequence
         {
@@ -195,7 +216,10 @@ class MouseInput
                 seq[i + 1] = '\0'; // Indicates end of sequence
 
                 // Saves sequence
-                ParseMouseSequence(seq, a);
+                cont = ParseMouseSequence(seq, a);
+
+                // Exits if while loop should exit
+                if(!cont) return;
             }
         }
     }
@@ -220,20 +244,20 @@ class MouseInput
         }
 };
 
-#pragma endregion
+//#pragma endregion
 //-----------------------------------------------------------------------------------------------------------
 
 int main()
 {
     // Game Variables
     bool game[xMax][yMax];
-    bool nextFrame[xMax][yMax];
+
+    bool paused;
        
     // Initializes arrays
     for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
     {
         game[x][y] = 0;
-        nextFrame[x][y] = 0;
     }
 
     // TEMP TEST
@@ -252,7 +276,7 @@ int main()
 }
 
 //-----------------------------------------------------------------------------------------------------------
-#pragma region Functions
+//#pragma region Functions
 
 // Finds how many neighbors are near a given cell
 int GetNeighbors(bool a[][yMax], int cords[])
@@ -263,31 +287,31 @@ int GetNeighbors(bool a[][yMax], int cords[])
     for(int i = 0; i < 4; i++) nearby[i] = true; // Initializes nearby to minimize logic trees later on
 
     // Checks if cell is on leftmost
-    if((cords[0] - 1) < 0) nearby[0] = true;
+    if((cords[1] - 1) < 0) nearby[0] = false;
 
     // Checks if cell is on rightmost
-    else if((cords[0] + 1) > xMax) nearby[1] = true;
+    else if((cords[1] + 1) > (yMax - 1)) nearby[1] = false;
 
     // Checks if cell is on topmost
-    if((cords[1] - 1) < 0) nearby[2] = true;
+    if((cords[0] - 1) < 0) nearby[2] = false;
 
     // Checks if cell is on bottom most
-    else if((cords[1] + 1) > yMax) nearby[3] = true;
+    else if((cords[0] + 1) > (xMax - 1)) nearby[3] = false;
 
     // Checks values of all nearby cells(assuming they exist)
 
     int active = 0;
 
     // Linear
-    if(nearby[0] && a[cords[0] - 1][cords[1]]) active++; // To the left
-    if(nearby[1] && a[cords[0] + 1][cords[1]]) active++; // To the right
-    if(nearby[2] && a[cords[0]][cords[1] - 1]) active++; // Above
-    if(nearby[3] && a[cords[0]][cords[1] + 1]) active++; // Below
+    if(nearby[0] && a[cords[0]][cords[1] - 1]) active++; // To the left
+    if(nearby[1] && a[cords[0]][cords[1] + 1]) active++; // To the right
+    if(nearby[2] && a[cords[0] - 1][cords[1]]) active++; // Above
+    if(nearby[3] && a[cords[0] + 1][cords[1]]) active++; // Below
 
     // Diagonal
     if(nearby[0] && nearby[2] && a[cords[0] - 1][cords[1] - 1]) active++; // Top left
-    if(nearby[1] && nearby[2] && a[cords[0] + 1][cords[1] - 1]) active++; // Top right
-    if(nearby[0] && nearby[3] && a[cords[0] - 1][cords[1] + 1]) active++; // Bottom left
+    if(nearby[1] && nearby[2] && a[cords[0] - 1][cords[1] + 1]) active++; // Top right
+    if(nearby[0] && nearby[3] && a[cords[0] + 1][cords[1] - 1]) active++; // Bottom left
     if(nearby[1] && nearby[3] && a[cords[0] + 1][cords[1] + 1]) active++; // Bottom right
 
     return active;
@@ -298,12 +322,36 @@ void Output(bool a[][yMax])
 {
     // Clears console
     cout << "\e[1;1H\e[2J"; 
+
+    cout << "\n";  // Ubuntu VSCode has an issue with buffering; purely to make sure all UI shows up
+
+    // Note some OS's and terminals may distort size of grid making x or y larger
     // Loops through all values in the array and outputs it
     for(int x = 0; x < xMax; x++)
     {
         for(int y = 0; y < yMax; y++)
         {
             cout << sprites[a[x][y]];
+        }
+
+        // Adds emojis for "special lines"
+
+        // End program
+        if(x == 0)
+        {
+            cout << "  " << sprites[3] << "  Quit Program";
+        }
+
+        // Forward step
+        if(x == 2)
+        {
+            cout << "  " << sprites[2] << "  Forward Step";
+        }
+
+        // Reset
+        if(x == 4)
+        {
+            cout << "  " << sprites[4] << "  Reset Board";
         }
 
         cout << "\n";
@@ -318,4 +366,44 @@ void OnClick(int x, int y, bool a[][yMax])
     Output(a);
 }
 
-#pragma endregion
+void Step(bool a[][yMax])
+{
+    bool nextFrame[xMax][yMax];
+    int cords[2];
+
+    int nearby;
+
+    bool val;
+
+    // Loops through every cell
+    for(int x = 0; x < xMax; x++) 
+    {
+        for(int y = 0; y < yMax; y++)
+        {
+            cords[0] = x;
+            cords[1] = y;
+
+            nearby = GetNeighbors(a, cords);
+
+            // Game rules: 2 || 3 = cell stays alive; 3 = cell becomes alive; 1 = cell dies; 4+ = cell dies
+
+            if(a[x][y] && (nearby == 2 || nearby == 3)) val = true; // If the cell is active & 2 or 3 nearby are active
+            else if(nearby == 3) val = true; // If cell is inactive & 3 nearby are active
+            else val = false; // Cell dies in all other cases
+
+            nextFrame[x][y] = val;
+        }
+    }
+
+    // Writes new frame
+    for(int x = 0; x < xMax; x++) 
+    {
+        for(int y = 0; y < yMax; y++)
+        {
+            a[x][y] = nextFrame[x][y];
+        }
+    }
+
+    Output(a);
+}
+//#pragma endregion
