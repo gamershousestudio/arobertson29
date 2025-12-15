@@ -4,11 +4,17 @@
 
 using namespace std;
 
-// Global variables (feel free to change x&y max)
-const int xMax = 10; // X = row(so technicially Y)
-const int yMax = 10; // Y = col(so technicially X)
+// Imports for frame limiting
+#include<chrono>
+#include<thread>
 
-const string sprites[] = {"⬜️", "⬛️", "⏩", "🟥", "🔄"}; // 0 = inactive cell; 1 = active cell; 2 = step; 3 = quit
+// Global variables (feel free to change x&y max)
+const int xMax = 50; // X = row(so technicially Y)
+const int yMax = 50; // Y = col(so technicially X)
+
+const int cooldown = 100;
+
+const string sprites[] = {"⬜️", "⬛️", "⏩", "🟥", "🔄", "⏭️"}; // 0 = inactive cell; 1 = active cell; 2 = step; 3 = quit
 
 // Function prototypes
 int GetNeighbors(bool a[][yMax], int cords[]);
@@ -157,8 +163,11 @@ class MouseInput
         ss >> action;
 
         // Checks if mouse inputs are valid(actually useful for code)
-        if(button != 0) return true;
-        if(action != 'm') return true;
+        if(button != 0) 
+            return true;
+        
+        if(action != 'm') 
+            return true;
 
         // Initializes struct values
         Input input;
@@ -169,20 +178,42 @@ class MouseInput
         // Checks for special rows
 
         // Exit program
-        if(input.row == 0 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) return false; // Position for exit emoji; room for buffering
-
-        // Runs the next step
-        if(input.row == 2 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) Step(a);
+        if(input.row == 0 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) // Position for exit emoji; room for buffering
+            return false; 
 
         // Resets game board
-        if(input.row == 4 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
+        if(input.row == 2 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
         {
             for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++) a[x][y] = 0;
+
             Output(a);
         }
 
+        // Runs the next step
+        if(input.row == 4 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
+            Step(a);    
+            
+        // Runs the next ten steps
+        if(input.row == 6 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
+            for(int i = 0; i < 10; i++)
+            {
+                Step(a);
+
+                this_thread::sleep_for(chrono::milliseconds(cooldown)); // Delays by three seconds
+            }
+
+        // Runs the next 100 steps
+        if(input.row == 8 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
+            for(int i = 0; i < 100; i++)
+            {
+                Step(a);
+
+                this_thread::sleep_for(chrono::milliseconds(cooldown)); // Delays by three seconds
+            }
+
         // Returns if the click is outside of bounds
-        if(input.row > (xMax - 1) || input.col > (yMax - 1)) return true; 
+        if(input.row > (xMax - 1) || input.col > (yMax - 1)) 
+            return true; 
 
         // Sends values to OnClick() event if all checks are passed
         OnClick(input.row, input.col, a);
@@ -256,21 +287,47 @@ int main()
        
     // Initializes arrays
     for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
-    {
         game[x][y] = 0;
+
+    // Introduction
+    cout << "\n\nHello!  Welcome to GameOfLifeOnABudget!";
+    cout << "\n\nHere are the rules:\n";
+    cout << " - If the cell is alive and there are two or three alive cells nearby, it lives\n"
+         << " - If a cell is dead and there are three alive cells nearby, it becomes alive\n"
+         << " - If a cell is alive and there is one or no alive cell nearby, it dies from loneliness\n"
+         << " - If a cell is alive and there is four or more alive cells nearby, it dies from overcrowding";
+
+    cout << "\n\nWould you like to play?(y/n)\n";
+
+    char choice;
+    cin >> choice;
+
+    cout << "\n\n";
+
+    if(choice == 'y')
+    {
+        // Main loop
+        Output(game);
+
+        MouseInput input;
+
+        int b, r, c;
+        char a;
+
+        input.StartMouseSignaling();
+        input.GetSignals(game);
+        input.StopMouseSignaling();
+    }
+    else if(choice == 'n')
+    {
+        cout << "Then why are you here...";
+    }
+    else
+    {
+        cout << "Wow... So competent...";
     }
 
-    // TEMP TEST
-    Output(game);
-
-    MouseInput input;
-
-    int b, r, c;
-    char a;
-
-    input.StartMouseSignaling();
-    input.GetSignals(game);
-    input.StopMouseSignaling();
+    cout << "\n\n";
 
     return 0;
 }
@@ -284,19 +341,24 @@ int GetNeighbors(bool a[][yMax], int cords[])
     // Sees if cells around it go out of bounds
 
     bool nearby[4]; // List of if the nearby cells exist; left = 0; right = 1; top = 2; bottom = 3;
-    for(int i = 0; i < 4; i++) nearby[i] = true; // Initializes nearby to minimize logic trees later on
+    for(int i = 0; i < 4; i++) 
+        nearby[i] = true; // Initializes nearby to minimize logic trees later on
 
     // Checks if cell is on leftmost
-    if((cords[1] - 1) < 0) nearby[0] = false;
+    if((cords[1] - 1) < 0) 
+        nearby[0] = false;
 
     // Checks if cell is on rightmost
-    else if((cords[1] + 1) > (yMax - 1)) nearby[1] = false;
+    else if((cords[1] + 1) > (yMax - 1))
+        nearby[1] = false;
 
     // Checks if cell is on topmost
-    if((cords[0] - 1) < 0) nearby[2] = false;
+    if((cords[0] - 1) < 0) 
+        nearby[2] = false;
 
     // Checks if cell is on bottom most
-    else if((cords[0] + 1) > (xMax - 1)) nearby[3] = false;
+    else if((cords[0] + 1) > (xMax - 1))   
+        nearby[3] = false;
 
     // Checks values of all nearby cells(assuming they exist)
 
@@ -323,36 +385,35 @@ void Output(bool a[][yMax])
     // Clears console
     cout << "\e[1;1H\e[2J"; 
 
-    cout << "\n";  // Ubuntu VSCode has an issue with buffering; purely to make sure all UI shows up
+    cout << "\n";  // Ubuntu VSCode has an issue with buffering; purely to make sure all UI shows up; may need more/less \ns depending on os & terminal
 
     // Note some OS's and terminals may distort size of grid making x or y larger
     // Loops through all values in the array and outputs it
     for(int x = 0; x < xMax; x++)
     {
         for(int y = 0; y < yMax; y++)
-        {
             cout << sprites[a[x][y]];
-        }
 
         // Adds emojis for "special lines"
 
         // End program
         if(x == 0)
-        {
             cout << "  " << sprites[3] << "  Quit Program";
-        }
-
-        // Forward step
-        if(x == 2)
-        {
-            cout << "  " << sprites[2] << "  Forward Step";
-        }
 
         // Reset
-        if(x == 4)
-        {
+        if(x == 2)
             cout << "  " << sprites[4] << "  Reset Board";
-        }
+
+        // Forward step
+        if(x == 4)
+            cout << "  " << sprites[2] << "  Forward Step";
+
+        // Forward x10 step
+        if(x == 6)
+            cout << "  " << sprites[5] << "  Forward x10";
+
+        if(x == 8)
+            cout << "  " << sprites[5] << "  Forward x100";
 
         cout << "\n";
     }
@@ -361,13 +422,15 @@ void Output(bool a[][yMax])
 // Toggles the value of a given cell
 void OnClick(int x, int y, bool a[][yMax])
 {
-    a[x][y] = !a[x][y];
+    a[x][y] = !a[x][y]; // Inverts current cell value
 
-    Output(a);
+    Output(a); // Outputs new array
 }
 
+// Moves sim forward based on game logic
 void Step(bool a[][yMax])
 {
+    // Variables for loops
     bool nextFrame[xMax][yMax];
     int cords[2];
 
@@ -383,7 +446,7 @@ void Step(bool a[][yMax])
             cords[0] = x;
             cords[1] = y;
 
-            nearby = GetNeighbors(a, cords);
+            nearby = GetNeighbors(a, cords); // Finds the cells nearby to a given cell
 
             // Game rules: 2 || 3 = cell stays alive; 3 = cell becomes alive; 1 = cell dies; 4+ = cell dies
 
@@ -400,7 +463,7 @@ void Step(bool a[][yMax])
     {
         for(int y = 0; y < yMax; y++)
         {
-            a[x][y] = nextFrame[x][y];
+            a[x][y] = nextFrame[x][y]; // Updates value
         }
     }
 
