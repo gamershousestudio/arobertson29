@@ -15,19 +15,7 @@ const int yMax = 20; // Y = col(so technicially X)
 
 const int cooldown = 100;
 
-const string sprites[] = {"🟥", "  ", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣" };
-
-// Function prototypes
-
-void Output(int a[][yMax]);
-
-void GenerateBoard(int a[][yMax], int bombs);
-
-int GetNearby(int a[][yMax], int x, int y);
-
-//#pragma endregion
-//-----------------------------------------------------------------------------------------------------------
-//#pragma region MouseInput
+const string sprites[] = {"  ", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣", "🟥"};
 
 // Info on click event
 struct Input
@@ -37,6 +25,21 @@ struct Input
 
     bool clickType;
 };
+
+// Function prototypes
+void Output(int a[][yMax]);
+
+void GenerateBoard(int a[][yMax], int bombs);
+
+void OnClick(Input clickInfo, int a[][yMax]);
+
+int GetNearby(int a[][yMax], int x, int y);
+
+//#pragma endregion
+//-----------------------------------------------------------------------------------------------------------
+//#pragma region MouseInput
+
+
 
 // Gets user mouse input
 // A lot of this stuff is weird terminal sorcery, but I tried to explain this as best as possible
@@ -49,6 +52,7 @@ struct Input
 #include<string> // Strings exist in this code
 
 termios originalTermios; // Initializes termios
+
 
 class MouseInput
 {
@@ -93,7 +97,7 @@ class MouseInput
     }
 
     // Saves input
-    bool ParseMouseSequence(const string &seq, bool a[][yMax]) // Returns if the while loop should be exited
+    bool ParseMouseSequence(const string &seq, int a[][yMax]) // Returns if the while loop should be exited
     {
         int button, col, row; // Info contained within the sequence
 
@@ -115,10 +119,7 @@ class MouseInput
         ss >> action;
 
         // Checks if mouse inputs are valid(actually useful for code)
-        if(button != 0 || button != 1) // Left/right click 
-            return true;
-        
-        if(action != 'm') // Action(up/down)
+        if(button != 0) 
             return true;
 
         // Initializes struct values
@@ -127,17 +128,30 @@ class MouseInput
         input.col = (col + (col % 2)) / 2 - 1; // Makes a multiple of two then divides by two(each emoji is two columns)
         input.row = row - 2; // Must subtract an extra one to account for \n buffering
 
-        input.clickType = button; // The number will be either 0 or 1; works fine with bools
+        if(button == 0) // 0 = left click 
+            input.clickType = 0;
+        else if(button == 1) // 1 = right click
+            input.clickType = 1;
+        else // Literally anything else
+            return 1;
+        
+        // Checks for special rows
 
         // Exit program
         if(input.row == 0 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) // Position for exit emoji; room for buffering
             return false; 
 
-        
+        // Returns if the click is outside of bounds
+        if(input.row > (xMax - 1) || input.col > (yMax - 1)) 
+            return true; 
+
+        // Sends values to OnClick() event if all checks are passed
+        OnClick(input, a);
+        return true;
     }
 
     // Decodes signals the terminal sends
-    void ReadInput(bool a[][yMax])
+    void ReadInput(int a[][yMax])
     {
         // Will be received as: ESC[< button; column; row M << indicates press event type(capital M means release)
 
@@ -179,7 +193,7 @@ class MouseInput
             EnableMouse();
         }
 
-        void GetSignals(bool a[][yMax])
+        void GetSignals(int a[][yMax])
         {
             ReadInput(a);
         }
@@ -202,7 +216,14 @@ int main()
 
     GenerateBoard(boardFull, 40);
 
+    MouseInput script;
+
+    // Runs game loop
     Output(boardFull);
+
+    script.StartMouseSignaling();
+    script.GetSignals(boardFull);
+    // script.StopMouseSignaling();
 
     return 0;
 }
@@ -295,6 +316,20 @@ void GenerateBoard(int a[][yMax], int bombs)
     }
 }
 
+// Event ran on mouse click
+void OnClick(Input clickInfo, int a[][yMax])
+{
+    int x = clickInfo.row;
+    int y = clickInfo.col;
+
+    if(clickInfo.clickType) // Left click
+        a[x][y] = 0;
+    else // Right click
+        a[x][y] = ;
+
+    Output(a);
+}
+
 // Outputs the frame
 void Output(int a[][yMax])
 {
@@ -308,7 +343,7 @@ void Output(int a[][yMax])
     for(int x = 0; x < xMax; x++)
     {
         for(int y = 0; y < yMax; y++)
-            cout << sprites[a[x][y] + 1];
+            cout << sprites[a[x][y]];
 
         // End program emoji
         //if(x == 0)

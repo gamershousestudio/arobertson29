@@ -10,20 +10,20 @@ using namespace std;
 
 // Global variables (feel free to change x&y max)
 const int xMax = 50; // X = row(so technicially Y)
-const int cols = 50; // Y = col(so technicially X)
+const int yMax = 50; // Y = col(so technicially X)
 
 const int cooldown = 100;
 
 const string sprites[] = {"⬜️", "⬛️", "⏩", "🟥", "🔄", "⏭️"}; // 0 = inactive cell; 1 = active cell; 2 = step; 3 = quit
 
 // Function prototypes
-int GetNeighbors(bool a[][cols], int cords[]);
+int GetNeighbors(bool a[][yMax], int cords[]);
 
-void Output(bool a[][cols]);
+void Output(bool a[][yMax]);
 
-void OnClick(int x, int y, bool a[][cols]);
+void OnClick(int x, int y, bool a[][yMax]);
 
-void Step(bool a[][cols]);
+void Step(bool a[][yMax]);
 
 //#pragma endregion
 //-----------------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ class MouseInput
     }
 
     // Saves input
-    bool ParseMouseSequence(const string &seq, bool a[][cols]) // Returns if the while loop should be exited
+    bool ParseMouseSequence(const string &seq, bool a[][yMax]) // Returns if the while loop should be exited
     {
         int button, col, row; // Info contained within the sequence
 
@@ -178,23 +178,23 @@ class MouseInput
         // Checks for special rows
 
         // Exit program
-        if(input.row == 0 && input.col >= (cols + 1) && input.col <= (cols + 10)) // Position for exit emoji; room for buffering
+        if(input.row == 0 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) // Position for exit emoji; room for buffering
             return false; 
 
         // Resets game board
-        if(input.row == 2 && input.col >= (cols + 1) && input.col <= (cols + 10)) 
+        if(input.row == 2 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
         {
-            for(int x = 0; x < xMax; x++) for(int y = 0; y < cols; y++) a[x][y] = 0;
+            for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++) a[x][y] = 0;
 
             Output(a);
         }
 
         // Runs the next step
-        if(input.row == 4 && input.col >= (cols + 1) && input.col <= (cols + 10)) 
+        if(input.row == 4 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
             Step(a);    
             
         // Runs the next ten steps
-        if(input.row == 6 && input.col >= (cols + 1) && input.col <= (cols + 10)) 
+        if(input.row == 6 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
             for(int i = 0; i < 10; i++)
             {
                 Step(a);
@@ -203,7 +203,7 @@ class MouseInput
             }
 
         // Runs the next 100 steps
-        if(input.row == 8 && input.col >= (cols + 1) && input.col <= (cols + 10)) 
+        if(input.row == 8 && input.col >= (yMax + 1) && input.col <= (yMax + 10)) 
             for(int i = 0; i < 100; i++)
             {
                 Step(a);
@@ -212,8 +212,10 @@ class MouseInput
             }
 
         // Returns if the click is outside of bounds
-        if(input.row > (xMax - 1) || input.col > (cols - 1)) 
+        if(input.row > (xMax - 1) || input.col > (yMax - 1)) 
             return true; 
+
+        cout << "...";
 
         // Sends values to OnClick() event if all checks are passed
         OnClick(input.row, input.col, a);
@@ -221,7 +223,7 @@ class MouseInput
     }
 
     // Decodes signals the terminal sends
-    void ReadInput(bool a[][cols])
+    void ReadInput(bool a[][yMax])
     {
         // Will be received as: ESC[< button; column; row M << indicates press event type(capital M means release)
 
@@ -263,7 +265,7 @@ class MouseInput
             EnableMouse();
         }
 
-        void GetSignals(bool a[][cols])
+        void GetSignals(bool a[][yMax])
         {
             ReadInput(a);
         }
@@ -281,12 +283,12 @@ class MouseInput
 int main()
 {
     // Game Variables
-    bool game[xMax][cols];
+    bool game[xMax][yMax];
 
     bool paused;
        
     // Initializes arrays
-    for(int x = 0; x < xMax; x++) for(int y = 0; y < cols; y++)
+    for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
         game[x][y] = 0;
 
     // Introduction
@@ -336,7 +338,7 @@ int main()
 //#pragma region Functions
 
 // Finds how many neighbors are near a given cell
-int GetNeighbors(bool a[][cols], int cords[])
+int GetNeighbors(bool a[][yMax], int cords[])
 {
     // Sees if cells around it go out of bounds
 
@@ -349,7 +351,7 @@ int GetNeighbors(bool a[][cols], int cords[])
         nearby[0] = false;
 
     // Checks if cell is on rightmost
-    else if((cords[1] + 1) > (cols - 1))
+    else if((cords[1] + 1) > (yMax - 1))
         nearby[1] = false;
 
     // Checks if cell is on topmost
@@ -380,7 +382,7 @@ int GetNeighbors(bool a[][cols], int cords[])
 }
 
 // Outputs the frame
-void Output(bool a[][cols])
+void Output(bool a[][yMax])
 {
     // Clears console
     cout << "\e[1;1H\e[2J"; 
@@ -391,7 +393,7 @@ void Output(bool a[][cols])
     // Loops through all values in the array and outputs it
     for(int x = 0; x < xMax; x++)
     {
-        for(int y = 0; y < cols; y++)
+        for(int y = 0; y < yMax; y++)
             cout << sprites[a[x][y]];
 
         // Adds emojis for "special lines"
@@ -420,7 +422,7 @@ void Output(bool a[][cols])
 }
 
 // Toggles the value of a given cell
-void OnClick(int x, int y, bool a[][cols])
+void OnClick(int x, int y, bool a[][yMax])
 {
     a[x][y] = !a[x][y]; // Inverts current cell value
 
@@ -428,10 +430,10 @@ void OnClick(int x, int y, bool a[][cols])
 }
 
 // Moves sim forward based on game logic
-void Step(bool a[][cols])
+void Step(bool a[][yMax])
 {
     // Variables for loops
-    bool nextFrame[xMax][cols];
+    bool nextFrame[xMax][yMax];
     int cords[2];
 
     int nearby;
@@ -441,7 +443,7 @@ void Step(bool a[][cols])
     // Loops through every cell
     for(int x = 0; x < xMax; x++) 
     {
-        for(int y = 0; y < cols; y++)
+        for(int y = 0; y < yMax; y++)
         {
             cords[0] = x;
             cords[1] = y;
@@ -461,7 +463,7 @@ void Step(bool a[][cols])
     // Writes new frame
     for(int x = 0; x < xMax; x++) 
     {
-        for(int y = 0; y < cols; y++)
+        for(int y = 0; y < yMax; y++)
         {
             a[x][y] = nextFrame[x][y]; // Updates value
         }
