@@ -15,7 +15,7 @@ const int yMax = 20; // Y = col(so technicially X)
 
 const int cooldown = 100;
 
-const string sprites[] = {"  ", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣", "🟥"};
+const string sprites[] = {"🟥", "  ", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣ ", "⛳️", "⏺️ "};
 
 // Info on click event
 struct Input
@@ -29,9 +29,11 @@ struct Input
 // Function prototypes
 void Output(int a[][yMax]);
 
-void GenerateBoard(int a[][yMax], int bombs);
+void GenerateBoard(int a1[][yMax], int a2[][yMax], int bombs);
 
-void OnClick(Input clickInfo, int a[][yMax]);
+bool OnClick(Input clickInfo, int a1[][yMax], int a2[][yMax]);
+
+void Reveal(int a1[][yMax], int a2[][yMax]);
 
 int GetNearby(int a[][yMax], int x, int y);
 
@@ -97,7 +99,7 @@ class MouseInput
     }
 
     // Saves input
-    bool ParseMouseSequence(const string &seq, int a[][yMax]) // Returns if the while loop should be exited
+    bool ParseMouseSequence(const string &seq, int a1[][yMax], int a2[][yMax]) // Returns if the while loop should be exited
     {
         int button, col, row; // Info contained within the sequence
 
@@ -118,10 +120,6 @@ class MouseInput
         // Sees if it is a press(m) or a release(M)
         ss >> action;
 
-        // Checks if mouse inputs are valid(actually useful for code)
-        if(button != 0) 
-            return true;
-
         // Initializes struct values
         Input input;
         
@@ -130,10 +128,10 @@ class MouseInput
 
         if(button == 0) // 0 = left click 
             input.clickType = 0;
-        else if(button == 1) // 1 = right click
+        else if(button == 2) // 1 = right click
             input.clickType = 1;
         else // Literally anything else
-            return 1;
+            return true;
         
         // Checks for special rows
 
@@ -146,12 +144,11 @@ class MouseInput
             return true; 
 
         // Sends values to OnClick() event if all checks are passed
-        OnClick(input, a);
-        return true;
+        return OnClick(input, a1, a2);
     }
 
     // Decodes signals the terminal sends
-    void ReadInput(int a[][yMax])
+    void ReadInput(int a1[][yMax], int a2[][yMax])
     {
         // Will be received as: ESC[< button; column; row M << indicates press event type(capital M means release)
 
@@ -177,7 +174,7 @@ class MouseInput
                 seq[i + 1] = '\0'; // Indicates end of sequence
 
                 // Saves sequence
-                cont = ParseMouseSequence(seq, a);
+                cont = ParseMouseSequence(seq, a1, a2);
 
                 // Exits if while loop should exit
                 if(!cont) return;
@@ -193,9 +190,9 @@ class MouseInput
             EnableMouse();
         }
 
-        void GetSignals(int a[][yMax])
+        void GetSignals(int a1[][yMax], int a2[][yMax])
         {
-            ReadInput(a);
+            ReadInput(a1, a2);
         }
 
         void StopMouseSignaling()
@@ -213,17 +210,18 @@ int main()
     srand(time(NULL));
 
     int boardFull[xMax][yMax];
+    int shownBoard[xMax][yMax];
 
-    GenerateBoard(boardFull, 40);
+    GenerateBoard(boardFull, shownBoard, 40);
 
     MouseInput script;
 
     // Runs game loop
-    Output(boardFull);
+    Output(shownBoard);
 
     script.StartMouseSignaling();
-    script.GetSignals(boardFull);
-    // script.StopMouseSignaling();
+    script.GetSignals(boardFull, shownBoard);
+    script.StopMouseSignaling();
 
     return 0;
 }
@@ -276,11 +274,11 @@ int GetNearby(int a[][yMax], int x, int y)
 }
 
 // Creates the integer array for the board
-void GenerateBoard(int a[][yMax], int bombs)
+void GenerateBoard(int a1[][yMax], int a2[][yMax], int bombs)
 {
     // Resets board
     for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
-        a[x][y] = 0;
+        a1[x][y] = 0;
 
     // Variables for loop
     int random[2];
@@ -293,10 +291,10 @@ void GenerateBoard(int a[][yMax], int bombs)
         random[1] = rand() % yMax;
 
         // Makes sure bomb is not already there (-1 = bomb)
-        if(a[random[0]][random[1]] != -1)
+        if(a1[random[0]][random[1]] != -1)
         {
             // Places bomb
-            a[random[0]][random[1]] = -1;
+            a1[random[0]][random[1]] = -1;
         }
         else
         {
@@ -309,25 +307,35 @@ void GenerateBoard(int a[][yMax], int bombs)
     for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
     {
         // Makes sure it is not a bomb(we don't check nearby for bombs)
-        if(a[x][y] != -1)
+        if(a1[x][y] != -1)
         {
-            a[x][y] = GetNearby(a, x, y);
+            a1[x][y] = GetNearby(a1, x, y);
         }
     }
+
+    for(int x = 0; x < xMax; x++) for(int y = 0; y < yMax; y++)
+        a2[x][y] = 10;
 }
 
 // Event ran on mouse click
-void OnClick(Input clickInfo, int a[][yMax])
+bool OnClick(Input clickInfo, int a1[][yMax], int a2[][yMax])
 {
     int x = clickInfo.row;
     int y = clickInfo.col;
 
-    if(clickInfo.clickType) // Left click
-        a[x][y] = 0;
-    else // Right click
-        a[x][y] = ;
+    if(clickInfo.clickType == 0) // Left click
+        a2[x][y] = 0;
+    else //if() // Right click and on an empty space
+        a2[x][y] = 9;
 
-    Output(a);
+    Output(a2);
+
+    return true; // If game should continue
+}
+
+void Reveal(int a1[][yMax], int a2[][yMax])
+{
+
 }
 
 // Outputs the frame
@@ -343,11 +351,11 @@ void Output(int a[][yMax])
     for(int x = 0; x < xMax; x++)
     {
         for(int y = 0; y < yMax; y++)
-            cout << sprites[a[x][y]];
+            cout << sprites[a[x][y] + 1];
 
         // End program emoji
-        //if(x == 0)
-            //cout << "  " << sprites[3] << "  Quit Program";
+        if(x == 0)
+            cout << "  " << sprites[3] << "  Quit Program";
 
         cout << "\n";
     }
